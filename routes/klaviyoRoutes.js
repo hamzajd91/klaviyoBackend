@@ -35,7 +35,7 @@ router.get("/campaign/:campaignId", fetchCampaignByCampaignId);
 router.post('/saveMatrixKey', saveMatrixKey);
 router.post('/fetchStatsKlaviyo', fetchStatsKlaviyo);
 router.get('/fetchCampaignMessage/:messageId', fetchCampaignMessage);
-router.get('/fetchMessageTemplate', fetchMessageTemplate);
+router.get('/fetchMessageTemplate/:templateId', fetchMessageTemplate);
 router.post('/refine_campaigns', refine_campaigns);
 
 

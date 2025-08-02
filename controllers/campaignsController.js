@@ -219,10 +219,11 @@ const refine_campaigns = async (req, res) => {
 
 
 const fetchCampaignMessage = async (req, res) => {
-    const { messageID } = req.params;
+    const { messageId } = req.params;
+    
   try {
     // const messageID = `01K0E8FZV514WH1FJ0C3PVDKQB`;
-    const url = `https://a.klaviyo.com/api/campaign-messages/${messageID}`;
+    const url = `https://a.klaviyo.com/api/campaign-messages/${messageId}`;
     const options = {
       method: "GET",
       headers: {
@@ -247,9 +248,9 @@ const fetchCampaignMessage = async (req, res) => {
 };
 
 const fetchMessageTemplate = async (req, res) => {
-  const {templateId} = req.body;
+  const {templateId} = req.params;
+  
   try {
-    // const templateId = "VfE9Ka";
     const url = `https://a.klaviyo.com/api/templates/${templateId}`;
 const options = {
   method: 'GET',
