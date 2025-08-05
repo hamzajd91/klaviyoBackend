@@ -17,10 +17,12 @@ const client_secret =
 // const redirect_uri = 'http://localhost:5000/oauth/klaviyo/callback'
 const NODE_ENV = process.env.NODE_ENV || "development";
 
-const redirect_uri =
-  NODE_ENV === "development"
-    ? "http://localhost:3000/Oauth"
-    : "https://klaviyo-frontend.vercel.app/Oauth";
+// const redirect_uri =
+//   NODE_ENV === "development"
+//     ? "http://localhost:3000/Oauth"
+//     : "https://klaviyo-frontend.vercel.app/Oauth";
+
+    redirect_uri = "https://klaviyo-frontend.vercel.app/Oauth"
 
 const scope = "list:read campaigns:read metrics:read";
 
