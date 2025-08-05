@@ -14,8 +14,7 @@ const app = express();
 
 app.use(cors());
 // app.use(cors({
-//   origin: 'https://your-frontend.vercel.app', // your frontend domain
-//   credentials: true
+//   origin: 'https://your-frontend.vercel.app', 
 // }));
 
 app.use(express.json());
@@ -24,6 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/klaviyo", require("./routes/klaviyoRoutes"));
+
 
 app.use(errorHandler);
 

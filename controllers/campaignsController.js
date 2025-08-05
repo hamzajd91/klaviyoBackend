@@ -3,11 +3,9 @@ const Campaign = require("../models/campaign");
 const User = require("../models/users");
 const { getMatrixKey, getStats } = require("../services/klaviyoService");
 const asyncHandler = require("express-async-handler");
-const { TemplateEnum } = require("klaviyo-api");
+const { getValidAccessToken } = require("../services/klaviyoAuthService");
 
 const KLAVIYO_API_KEY = process.env.KLAVIYO_API_KEY;
-// const campaignId = "687fcdc69309d7e7a27024a9";
-// const metricId = "TDZQBh";
 
 const fetchCampaignData = async (req, res) => {
   try {
@@ -26,7 +24,6 @@ const fetchRefinedCampaignData = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 // fetch campaign by user id
 const fetchCampaignById = async (req, res) => {
@@ -92,11 +89,9 @@ const fetchCampaignByCampaignId = async (req, res) => {
 
 };
 
-
-
 const saveMatrixKey = async (req, res) => {
   const userId = req.body.userId;
-  const matrixKey = await getMatrixKey();
+  const matrixKey = await getMatrixKey(userId);
   if (!userId || !matrixKey) {
     return res
       .status(400)
@@ -118,53 +113,20 @@ const saveMatrixKey = async (req, res) => {
   }
 };
 
-const fetchEventsStats = async (req, res) => {
-  try {
-    const {
-      type = "campaign",
-      timeframe = "last_30_days",
-      statistics = "click_rate",
-      filter = "",
-      conversion_metric_id,
-    } = req.query;
-    const campaigns = await Campaign.find();
-
-    for (const c of campaigns) {
-      const stats = await getCampaignStatistics(
-        c.campaign_id,
-        conversion_metric_id,
-        { type, timeframe, statistics, filter }
-      );
-      await Campaign.updateOne(
-        { campaign_id: c.campaign_id },
-        { statistics: stats }
-      );
-    }
-
-    res.status(200).json({ message: "Stats updated" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-
-
 const fetchStatsKlaviyo = async (req, res) => {
 
   const {matrixKey, campaignId} = req.body;
 
-  const stats = await getStats(matrixKey, campaignId, year = 2025);
+  const stats = await getStats(userId, matrixKey, campaignId, year = 2025);
   if (!stats) {
     return res.status(404).json({ message: "No stats found" });
   }
   res.status(200).json(stats);
 };
 
-
 const refine_campaigns = async (req, res) => {
-  const matrixKey ="TDZQBh"
 
-  // const matrixKey = req.query.matrixKey;
+  const {userId, matrixKey} = req.body;
   if (!matrixKey) {
     return res.status(400).json({ message: "matrixKey is required" });
   }
@@ -188,7 +150,7 @@ const refine_campaigns = async (req, res) => {
         // if (existing) continue; // skip already processed
 
         try {
-          const stats = await getStats(matrixKey, campaignId, year = 2025);
+          const stats = await getStats(userId, matrixKey, campaignId, year = 2025);
           if (stats) {
             doc.refined_data.push({
               campaignId,
@@ -214,28 +176,27 @@ const refine_campaigns = async (req, res) => {
   }
 }
 
-  
-
-
-
 const fetchCampaignMessage = async (req, res) => {
-    const { messageId } = req.params;
+    const { messageId, userId } = req.params;   
+      console.log(messageId, userId);
+         
     
+    const accessToken = await getValidAccessToken(userId);
   try {
-    // const messageID = `01K0E8FZV514WH1FJ0C3PVDKQB`;
+    
     const url = `https://a.klaviyo.com/api/campaign-messages/${messageId}`;
     const options = {
       method: "GET",
       headers: {
         accept: "application/vnd.api+json",
         revision: "2025-07-15",
-        Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
+       Authorization: `Bearer ${accessToken}`,
       },
     };
 
     fetch(url, options)
       .then((res) => res.json())
-      .then((json) => {
+      .then((json) => {                        
         res.status(200).json(json);
       })
       .catch((err) => {
@@ -248,8 +209,11 @@ const fetchCampaignMessage = async (req, res) => {
 };
 
 const fetchMessageTemplate = async (req, res) => {
-  const {templateId} = req.params;
+  const {templateId, userId} = req.params;
+  const accessToken = await getValidAccessToken(userId);
+  console.log(templateId, userId);
   
+ 
   try {
     const url = `https://a.klaviyo.com/api/templates/${templateId}`;
 const options = {
@@ -257,7 +221,7 @@ const options = {
   headers: {
     accept: 'application/vnd.api+json',
     revision: '2025-07-15',
-    Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
+    Authorization: `Bearer ${accessToken}`,
   }
 };
 

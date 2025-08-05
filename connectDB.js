@@ -4,13 +4,15 @@ const uri = process.env.Mongo_URI;
 
 const mongoose = require("mongoose");
 const User = require("./models/users");
-
+const Campaign = require("./models/campaign");
 const bcrypt = require("bcryptjs");
 
 const connectDB = async () => {
+
   try {
     await mongoose.connect(uri);
     console.log("MongoDB connected successfully");
+
   } catch (err) {
     console.error("MongoDB connection failed:", err);
     process.exit(1);

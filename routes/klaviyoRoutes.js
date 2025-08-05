@@ -24,9 +24,10 @@ const {
   fetchMessageTemplate,
   refine_campaigns,
   fetchRefinedCampaignData,
-  fetchCampaignByCampaignId
+  fetchCampaignByCampaignId,
 
 } = require("../controllers/campaignsController");
+const { auth, callback } = require("../controllers/authController");
 
 router.get('/fetchCampaigns', fetchCampaignData);
 router.get('/fetchRefinedCampaignData', fetchRefinedCampaignData);
@@ -34,10 +35,11 @@ router.post('/byId', fetchCampaignById);
 router.get("/campaign/:campaignId", fetchCampaignByCampaignId);
 router.post('/saveMatrixKey', saveMatrixKey);
 router.post('/fetchStatsKlaviyo', fetchStatsKlaviyo);
-router.get('/fetchCampaignMessage/:messageId', fetchCampaignMessage);
-router.get('/fetchMessageTemplate/:templateId', fetchMessageTemplate);
+router.get('/fetchCampaignMessage/:messageId/:userId', fetchCampaignMessage);
+router.get('/fetchMessageTemplate/:templateId/:userId', fetchMessageTemplate);
 router.post('/refine_campaigns', refine_campaigns);
-
+router.get('/auth/:userId', auth);
+router.post('/auth/callback', callback);
 
 
 // router.get('/paginated', async (req, res) => {
@@ -160,7 +162,7 @@ router.get("/metrics", async (req, res) => {
 
 router.get("/metricsKey", async (req, res) => {
   try {
-    const data = await getMatrixKey();
+    const data = await getMatrixKey(userId);
     res.json(data);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch metrics" });

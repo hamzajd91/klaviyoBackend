@@ -2,50 +2,11 @@ require("dotenv").config();
 const axios = require("axios");
 const Campaign = require("../models/campaign");
 const User = require("../models/users");
+ const crypto = require('crypto');
+const { getValidAccessToken } = require("./klaviyoAuthService");
 
 const KLAVIYO_API_KEY = process.env.KLAVIYO_API_KEY;
 
-// const getCampaigns = async () => {
-//   try {
-//     // const response = await axios.get(
-//     //   "https://a.klaviyo.com/api/campaigns/?filter=equals(messages.channel,'email')",
-//     //   // "https://a.klaviyo.com/api/events/",
-//     //   {
-//     //     headers: {
-//     //       Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
-//     //       Accept: "application/json",
-//     //       revision: "2023-10-15", // Make sure this is included
-//     //     },
-//     //   }
-//     // );
-//     // return response.data;
-
-//      let allCampaigns = [];
-//   let nextUrl = `https://a.klaviyo.com/api/campaigns/?filter=equals(messages.channel,'email')`;
-
-//   do {
-//     const response = await axios.get(nextUrl,
-//       {
-//         headers: {
-//           Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
-//           Accept: "application/json",
-//           revision: "2023-10-15",
-//         },
-//       }
-//     );
-//     const { data, links } = response.data;
-
-//     allCampaigns.push(...data);
-//     nextUrl = links?.next || null;
-//   } while (nextUrl);
-
-//   return allCampaigns;
-
-//   } catch (error) {
-//     console.error("Error fetching campaigns:", error.response?.data || error.message);
-//     throw error;
-//   }
-// };
 
 const getCampaigns = async (userId) => {
   console.log("Fetching campaigns for user:", userId);
@@ -54,6 +15,7 @@ const getCampaigns = async (userId) => {
   }
 
   try {
+      const accessToken = await getValidAccessToken(userId);
     let allCampaigns = [];
     let nextUrl = `https://a.klaviyo.com/api/campaigns/?filter=equals(messages.channel,'email')`;
     let index = 0;
@@ -64,7 +26,11 @@ const getCampaigns = async (userId) => {
       console.log("Current URL:", nextUrl);
       const response = await axios.get(nextUrl, {
         headers: {
-          Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
+          // Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
+          // Accept: "application/json",
+          // revision: "2023-10-15",
+
+              Authorization: `Bearer ${accessToken}`,
           Accept: "application/json",
           revision: "2023-10-15",
         },
@@ -188,13 +154,15 @@ const getFlows = async () => {
   }
 };
 
-const getMetrics = async () => {
+const getMetrics = async (userId) => {
+  const accessToken = await getValidAccessToken(userId);
+        
   try {
     const response = await axios.get("https://a.klaviyo.com/api/metrics/", {
       headers: {
-        Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
-        Accept: "application/json",
-        revision: "2023-10-15",
+        Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+          revision: "2023-10-15",
       },
     });
     return response.data;
@@ -207,13 +175,14 @@ const getMetrics = async () => {
   }
 };
 
-const getMatrixKey = async () => {
+const getMatrixKey = async (userId) => {
+  const accessToken = await getValidAccessToken(userId);
   try {
     const response = await axios.get("https://a.klaviyo.com/api/metrics/", {
       headers: {
-        Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
-        Accept: "application/json",
-        revision: "2023-10-15",
+      Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+          revision: "2023-10-15",
       },
     });
 
@@ -258,7 +227,10 @@ const getCatalogs = async () => {
   }
 };
 
-const getStats = async (matrixKey, campaignId, year ) => {
+const getStats = async (userId, matrixKey, campaignId, year ) => {
+
+    const accessToken = await getValidAccessToken(userId);
+
   try {
     const url = "https://a.klaviyo.com/api/campaign-values-reports";
     const options = {
@@ -267,7 +239,7 @@ const getStats = async (matrixKey, campaignId, year ) => {
         accept: "application/vnd.api+json",
         revision: "2025-07-15",
         "content-type": "application/vnd.api+json",
-        Authorization: `Klaviyo-API-Key ${KLAVIYO_API_KEY}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
         data: {
@@ -323,7 +295,7 @@ const getStats = async (matrixKey, campaignId, year ) => {
     if (!json?.data || json.data.length === 0) {
       if (year > 2022) {
         console.log(`No data for ${year}, trying ${year - 1}`);
-        return await getStats(matrixKey, campaignId, year - 1);
+        return await getStats(userId, matrixKey, campaignId, year - 1);
       } else {
         return "No data in recent years";
       }
@@ -379,6 +351,25 @@ const getStats = async (matrixKey, campaignId, year ) => {
   }
 };
 
+
+function base64URLEncode(str) {
+  return btoa(String.fromCharCode(...new Uint8Array(str)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+async function generateCodes() {
+  const codeVerifier = base64URLEncode(crypto.getRandomValues(new Uint8Array(32)));
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  const codeChallenge = base64URLEncode(digest);  
+
+  return { codeVerifier, codeChallenge };
+}
+
 module.exports = {
   getCampaigns,
   getProfiles,
@@ -389,4 +380,5 @@ module.exports = {
   getMatrixKey,
   getCatalogs,
   getStats,
+  generateCodes
 };

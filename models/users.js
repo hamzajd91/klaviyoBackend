@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { getMatrixKey } = require("../services/klaviyoService");
 
 const userSchema = mongoose.Schema(
   {
@@ -11,6 +10,8 @@ const userSchema = mongoose.Schema(
     // userType: { type: String, enum: ["admin", "user"], default: "user" },
     klaviyo: {
       accessToken: String,
+      refreshToken: String,
+      code_verifier: String,
       matrixKey: String,
       tokenExpiry: Date,
       integrationStatus: Boolean,
