@@ -178,7 +178,6 @@ const refine_campaigns = async (req, res) => {
 
 const fetchCampaignMessage = async (req, res) => {
     const { messageId, userId } = req.params;   
-      console.log(messageId, userId);
          
     
     const accessToken = await getValidAccessToken(userId);
@@ -196,10 +195,12 @@ const fetchCampaignMessage = async (req, res) => {
 
     fetch(url, options)
       .then((res) => res.json())
-      .then((json) => {                        
+      .then((json) => {       
+        console.log("campaign message:", json);                         
         res.status(200).json(json);
       })
       .catch((err) => {
+        console.log("Error fetching campaign message:", err);        
         res.status(500).json({ error: err.message });
       });
   } catch (error) {
@@ -209,35 +210,36 @@ const fetchCampaignMessage = async (req, res) => {
 };
 
 const fetchMessageTemplate = async (req, res) => {
-  const {templateId, userId} = req.params;
-  const accessToken = await getValidAccessToken(userId);
-  console.log(templateId, userId);
-  
- 
+  const { templateId, userId } = req.params;
   try {
+    const accessToken = await getValidAccessToken(userId);
     const url = `https://a.klaviyo.com/api/templates/${templateId}`;
-const options = {
-  method: 'GET',
-  headers: {
-    accept: 'application/vnd.api+json',
-    revision: '2025-07-15',
-    Authorization: `Bearer ${accessToken}`,
+    const options = {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+        revision: "2023-10-15",
+      },
+    };
+
+    const response = await fetch(url, options);
+    const data = await response.json();
+    console.log(response.error);
+    
+
+    if (!response.ok) {
+      console.log("Failed to fetch template:", data);
+      throw new Error(data?.message || "Failed to fetch template");
+    }
+
+    return res.status(200).json(data);
+  } catch (error) {
+    console.error("Error fetching message template:", error.message);
+    return res.status(500).json({ error: error.message });
   }
 };
 
-    fetch(url, options)
-      .then((res) => res.json())
-      .then((json) => {
-        res.status(200).json(json);
-      })
-      .catch((err) => {
-        res.status(500).json({ error: err.message });
-      });
-  } catch (error) {
-    console.error("Error fetching message template:", error.message);
-    res.status(500).json({ error: error.message });
-  }
-};
 
 module.exports = {
   fetchCampaignData,

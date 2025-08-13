@@ -23,8 +23,10 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 //     : "https://klaviyo-frontend.vercel.app/Oauth";
 
     redirect_uri = "https://klaviyo-frontend.vercel.app/Oauth"
+    // redirect_uri = "http://localhost:3000/Oauth"
 
-const scope = "list:read campaigns:read metrics:read";
+// const scope = "campaigns:read metrics:read";
+const scope = "campaigns:read metrics:read templates:read";
 
 const auth = asyncHandler(async (req, res) => {
   const { codeVerifier, codeChallenge } = await generateCodes();
@@ -44,8 +46,8 @@ const auth = asyncHandler(async (req, res) => {
 
       if (user) {
         user.set("klaviyo.code_verifier", codeVerifier);
-        // user.klaviyo.code_verifier = codeVerifier;
         await user.save();
+        console.log("Klaviyo code verifier saved for user:", user.email);
       }
     } catch (err) {
       console.log("did not save");

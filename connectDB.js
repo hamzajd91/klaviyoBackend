@@ -66,10 +66,27 @@ const changePassword = async () => {
 
 };
 
+const removeKlaviyo = async () => {
+
+  try {
+ await User.findByIdAndUpdate('688e5956705da9c0dbfb9f62', {
+    "klaviyo.accessToken": null,
+    "klaviyo.refreshToken": null,
+  });
+  console.log(User.findByIdAndUpdate('688e5956705da9c0dbfb9f62'));
+  
+    console.log(`Klaviyo tokens removed successfully`);
+  } catch (err) {
+    console.error("Error in testDev:", err);
+  }
+
+};
+
 
 module.exports = { 
   connectDB, 
   ensureAdminExists, 
   deleteAllUsers,
-  changePassword
+  changePassword,
+  removeKlaviyo
  };

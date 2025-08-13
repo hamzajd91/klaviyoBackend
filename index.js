@@ -3,12 +3,13 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv").config();
 const { errorHandler } = require("./middlewares/errormiddleware");
-const { connectDB, ensureAdminExists, deleteAllUsers, changePassword } = require("./connectDB");
+const { connectDB, ensureAdminExists, deleteAllUsers, changePassword, removeKlaviyo } = require("./connectDB");
 
 
 connectDB();
 // deleteAllUsers();
 // changePassword()
+// removeKlaviyo();
 
 const app = express();
 
