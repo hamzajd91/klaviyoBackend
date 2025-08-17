@@ -372,13 +372,13 @@ async function generateCodes() {
 
 module.exports = {
   getCampaigns,
-  getProfiles,
-  getEvents,
-  getList,
-  getFlows,
+  getProfiles, // ------------
+  getEvents, // ------------
+  getList, // ------------
+  getFlows, // ------------
   getMetrics,
   getMatrixKey,
-  getCatalogs,
-  getStats,
+  getCatalogs, // ------------
+  getStats, // ------------
   generateCodes
 };
